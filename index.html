@@ -1,1 +1,418 @@
-html
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GMC Mini App (iframe)</title>
+
+<!-- Tailwind-like minimal styles (self-contained) -->
+<style>
+  :root {
+    --bg: #0b1220;
+    --card: rgba(255,255,255,0.04);
+    --muted: rgba(255,255,255,0.65);
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --success: #10b981;
+  }
+  html,body {height:100%; margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+  body {background: linear-gradient(180deg,#071026 0%, #0b1220 100%); color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+  .wrap {max-width:980px; margin:12px auto; padding:12px;}
+  .card {background:var(--card); border-radius:14px; padding:14px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); backdrop-filter: blur(6px);}
+  .row {display:flex; gap:12px; align-items:center;}
+  .col {display:flex; flex-direction:column; gap:8px;}
+  .btn {background:var(--accent); color:#fff; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600;}
+  .btn.secondary {background:#111827; color:var(--muted); border:1px solid rgba(255,255,255,0.04);}
+  .pill {padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.03); font-size:13px;}
+  .small {font-size:13px; color:var(--muted);}
+  .muted {color:var(--muted);}
+  .grid {display:grid; gap:8px;}
+  .grid.cols-2 {grid-template-columns: 1fr 1fr;}
+  .label {font-size:12px; color:rgba(255,255,255,0.7);}
+  .value {font-size:18px; font-weight:700;}
+  .topbar {display:flex; justify-content:space-between; align-items:center; gap:12px;}
+  .logo {width:44px; height:44px; background: linear-gradient(135deg,#7c3aed, #06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:16px;}
+  .drop {position:relative;}
+  .dropdown {position:absolute; right:0; top:40px; background:var(--card); padding:8px; border-radius:8px; min-width:180px; box-shadow:0 8px 20px rgba(2,6,23,0.6);}
+  .dropdown button {display:block; width:100%; text-align:left; border:none; background:none; color:var(--muted); padding:8px 6px; cursor:pointer; border-radius:6px;}
+  .dropdown button:hover {background:rgba(255,255,255,0.02); color:#fff;}
+  .connect-btn {background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#fff; padding:8px 12px; border-radius:10px; font-weight:700;}
+  .small-note {font-size:12px; color:rgba(255,255,255,0.6);}
+  .status {font-size:13px; color:#9ca3af;}
+  @media (max-width:720px) {
+    .wrap {padding:8px;}
+    .grid.cols-2 {grid-template-columns: 1fr;}
+    .topbar {flex-direction:column; align-items:flex-start; gap:8px;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div class="row">
+          <div class="logo">GMC</div>
+          <div style="margin-left:10px">
+            <div style="font-weight:800">Groupies Meme Coin</div>
+            <div class="small-note">Digitalknuckles • <span id="projectUrl">digitalknuckles.xyz</span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div id="connectionBlock" class="row">
+            <div id="addrShort" class="pill small muted">Not connected</div>
+            <div style="width:8px"></div>
+            <button id="connectBtn" class="connect-btn">Connect Wallet</button>
+          </div>
+
+          <div class="drop" style="margin-left:8px">
+            <button id="menuBtn" class="pill small">Menu ▾</button>
+            <div id="menu" class="dropdown" style="display:none">
+              <button id="refreshBtn">Refresh</button>
+              <button id="openSite">Open Site</button>
+              <button id="exportABI">Copy ABI (clipboard)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none; height:1px; background:rgba(255,255,255,0.02); margin:12px 0" />
+
+      <div class="grid cols-2">
+        <div class="card" style="padding:12px">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div class="label">Your Balance</div>
+              <div id="userBalance" class="value">—</div>
+              <div class="small muted" id="userAddressFull">—</div>
+            </div>
+            <div style="text-align:right">
+              <div class="label">Tier</div>
+              <div id="tierLabel" class="value">—</div>
+              <div class="small muted">Streak Days: <span id="streakDays">0</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button id="claimBtn" class="btn" style="flex:1">Claim</button>
+            <button id="buy1Btn" class="btn secondary" style="flex:1">Buy 1</button>
+          </div>
+
+          <div style="margin-top:10px" class="small-note">Next claim in: <span id="nextCountdown">—</span></div>
+        </div>
+
+        <div class="card" style="padding:12px">
+          <div class="label">Contract</div>
+          <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+            <div style="flex:1">
+              <div class="small-note">Address</div>
+              <div id="contractAddr" class="value" style="font-size:13px; word-break:break-all"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px" class="grid">
+            <div class="row" style="justify-content:space-between"><div class="small-note">Total Minted</div><div id="totalMinted" class="value">—</div></div>
+            <div class="row" style="justify-content:space-between"><div class="small-note">Public Mint</div><div id="pubMint" class="value">—</div></div>
+            <div class="row" style="justify-content:space-between"><div class="small-note">Mint Price (wei)</div><div id="mintPrice" class="value">—</div></div>
+            <div class="row" style="justify-content:space-between"><div class="small-note">Market Cap (approx)</div><div id="marketCap" class="value">—</div></div>
+          </div>
+
+          <div style="margin-top:10px; display:flex; gap:8px;">
+            <button id="copyAddr" class="btn secondary" style="flex:1">Copy Address</button>
+            <button id="verifyBtn" class="btn" style="flex:1">Verify on BaseScan</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;" class="small-note">
+        <strong>Note:</strong> Token value shown is approximate and computed using contract mintPrice if available. Add liquidity and price feeds to show market price.
+      </div>
+
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+        <div class="small-note">Status: <span id="statusText">Ready</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dependencies (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+
+  <script>
+  (function () {
+    // ----- CONFIG -----
+    const CONTRACT_ADDRESS = "0xREPLACE_WITH_YOUR_PROXY_ADDRESS";
+    document.getElementById('contractAddr').innerText = CONTRACT_ADDRESS;
+    document.getElementById('projectUrl').innerText = "https://digitalknuckles.xyz/";
+
+    // Minimal ABI used by this UI — add functions if your contract differs
+    const ABI = [
+      "function name() view returns (string)",
+      "function symbol() view returns (string)",
+      "function decimals() view returns (uint8)",
+      "function totalSupply() view returns (uint256)",
+      "function balanceOf(address) view returns (uint256)",
+      "function getClaimInfo(address) view returns (uint256,uint256,uint8,uint8,uint8,uint256)",
+      "function publicMintEnabled() view returns (bool)",
+      "function mintPriceWei() view returns (uint256)",
+      "function publicMint(uint256) payable",
+      "function claim()"
+    ];
+
+    // web3modal + provider setup
+    let provider, signer, address, chainId;
+    let readonlyProvider;
+    let contractRO, contractRW;
+    const providerOptions = {
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          rpc: { 8453: "https://mainnet.base.org" },
+          chainId: 8453
+        }
+      }
+    };
+    const web3Modal = new window.Web3Modal.default({ cacheProvider: true, providerOptions });
+
+    // helpers
+    function shortAddr(a){ return a ? (a.slice(0,6) + '...' + a.slice(-4)) : '—'; }
+    function toHuman(units, dec){ try { return ethers.utils.formatUnits(units, dec); } catch(e){ return '0'; } }
+    function safeGet(obj, idx, fallback=null){ try { return obj[idx]; } catch { return fallback; } }
+
+    // DOM refs
+    const connectBtn = document.getElementById('connectBtn');
+    const addrShort = document.getElementById('addrShort');
+    const userBalanceEl = document.getElementById('userBalance');
+    const userAddressFull = document.getElementById('userAddressFull');
+    const totalMintedEl = document.getElementById('totalMinted');
+    const pubMintEl = document.getElementById('pubMint');
+    const mintPriceEl = document.getElementById('mintPrice');
+    const marketCapEl = document.getElementById('marketCap');
+    const claimBtn = document.getElementById('claimBtn');
+    const buy1Btn = document.getElementById('buy1Btn');
+    const statusText = document.getElementById('statusText');
+    const tierLabelEl = document.getElementById('tierLabel');
+    const streakDaysEl = document.getElementById('streakDays');
+    const nextCountdownEl = document.getElementById('nextCountdown');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const menuBtn = document.getElementById('menuBtn');
+    const menu = document.getElementById('menu');
+    const copyAddr = document.getElementById('copyAddr');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const openSite = document.getElementById('openSite');
+    const exportABI = document.getElementById('exportABI');
+
+    // initial readonly provider + contract
+    readonlyProvider = new ethers.providers.JsonRpcProvider("https://mainnet.base.org");
+    contractRO = new ethers.Contract(CONTRACT_ADDRESS, ABI, readonlyProvider);
+
+    // set initial UI
+    addrShort.innerText = "Not connected";
+    userAddressFull.innerText = "";
+
+    async function refreshReadOnly() {
+      try {
+        const [name, symbol, dec, total, pubEnabled, mintPrice] = await Promise.all([
+          contractRO.name().catch(()=>null),
+          contractRO.symbol().catch(()=>null),
+          contractRO.decimals().catch(()=>18),
+          contractRO.totalSupply().catch(()=>ethers.BigNumber.from("0")),
+          contractRO.publicMintEnabled().catch(()=>false),
+          contractRO.mintPriceWei().catch(()=>ethers.BigNumber.from("0"))
+        ]);
+        const decimals = Number(dec || 18);
+        totalMintedEl.innerText = toHuman(total, decimals);
+        pubMintEl.innerText = pubEnabled ? "Enabled" : "Disabled";
+        mintPriceEl.innerText = mintPrice ? mintPrice.toString() : "0";
+
+        // approximate market cap using mintPrice (only approximate; front-end note given)
+        try {
+          const marketCapUnits = total.mul(mintPrice || ethers.BigNumber.from("0"));
+          // marketCapUnits is in wei * tokenUnits; it's not a direct fiat price — we show approximate using mintPrice as proxy
+          marketCapEl.innerText = marketCapUnits.toString();
+        } catch (e) {
+          marketCapEl.innerText = "—";
+        }
+
+      } catch (err) {
+        console.error("refreshReadOnly error", err);
+      }
+    }
+
+    // tick update for countdowns
+    let timerInterval = null;
+    function startTimerInterval() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!address) return;
+        // compute countdown from claimInfo cached in UI
+        if (window._lastClaimInfo) {
+          const now = Math.floor(Date.now()/1000);
+          const availableAt = Number(window._lastClaimInfo.lastClaimAt || 0) + Number(window._lastClaimInfo.nextTimeout || 0);
+          const diff = availableAt > now ? availableAt - now : 0;
+          if (diff === 0) nextCountdownEl.innerText = "Available now";
+          else {
+            const m = Math.floor(diff/60); const s = diff % 60;
+            nextCountdownEl.innerText = `${m}m ${s}s`;
+          }
+        }
+      }, 1000);
+    }
+
+    // connect wallet
+    async function connectWallet() {
+      try {
+        statusText.innerText = "Connecting...";
+        const instance = await web3Modal.connect();
+        provider = new ethers.providers.Web3Provider(instance);
+        signer = provider.getSigner();
+        address = await signer.getAddress();
+        chainId = (await provider.getNetwork()).chainId;
+
+        // prepare contract RW
+        contractRW = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+        addrShort.innerText = shortAddr(address);
+        userAddressFull.innerText = address;
+        connectBtn.innerText = "Connected";
+
+        // subscribe events
+        if (instance.on) {
+          instance.on("accountsChanged", (accounts) => {
+            if (accounts.length === 0) disconnectWallet();
+            else { address = accounts[0]; addrShort.innerText = shortAddr(address); userAddressFull.innerText = address; refreshUser(); }
+          });
+          instance.on("chainChanged", (_chainId) => { window.location.reload(); });
+        }
+
+        await refreshUser();
+        startTimerInterval();
+        statusText.innerText = "Connected";
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = "Connection failed";
+      }
+    }
+
+    async function disconnectWallet() {
+      try {
+        await web3Modal.clearCachedProvider();
+      } catch(e){}
+      provider = signer = address = contractRW = null;
+      addrShort.innerText = "Not connected";
+      userAddressFull.innerText = "";
+      connectBtn.innerText = "Connect Wallet";
+      statusText.innerText = "Disconnected";
+      window._lastClaimInfo = null;
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    // read user-specific info
+    async function refreshUser() {
+      try {
+        if (!address) return;
+        // read balance & claim info
+        const dec = Number(await contractRO.decimals().catch(()=>18));
+        const [bal, rawClaimInfo] = await Promise.all([
+          contractRO.balanceOf(address).catch(()=>ethers.BigNumber.from("0")),
+          contractRO.getClaimInfo(address).catch(()=>[0,0,0,0,0,0])
+        ]);
+        userBalanceEl.innerText = toHuman(bal, dec);
+        // getClaimInfo returns: (lastClaimAt, nextTimeout, tier, claimsInCycle, consecutiveDays, cycleStart)
+        const info = {
+          lastClaimAt: Number(safeGet(rawClaimInfo, 0, 0)),
+          nextTimeout: Number(safeGet(rawClaimInfo, 1, 0)),
+          tier: Number(safeGet(rawClaimInfo, 2, 0)),
+          claimsInCycle: Number(safeGet(rawClaimInfo, 3, 0)),
+          consecutiveDays: Number(safeGet(rawClaimInfo, 4, 0)),
+          cycleStart: Number(safeGet(rawClaimInfo, 5, 0)),
+        };
+        window._lastClaimInfo = info;
+        tierLabelEl.innerText = info.tier === 0 ? "Claim Streak" : (info.tier === 1 ? "Daily Streak" : "Max Streak");
+        streakDaysEl.innerText = String(info.consecutiveDays || 0);
+
+        // compute next available
+        if (!info.lastClaimAt || info.lastClaimAt === 0) nextCountdownEl.innerText = "Available now";
+        else {
+          const now = Math.floor(Date.now()/1000);
+          const availableAt = info.lastClaimAt + info.nextTimeout;
+          const diff = availableAt > now ? availableAt - now : 0;
+          if (diff === 0) nextCountdownEl.innerText = "Available now";
+          else {
+            const m = Math.floor(diff/60); const s = diff % 60;
+            nextCountdownEl.innerText = `${m}m ${s}s`;
+          }
+        }
+
+        // refresh global read-onlys
+        await refreshReadOnly();
+
+      } catch (err) {
+        console.error("refreshUser", err);
+      }
+    }
+
+    // claim action
+    async function claimAction() {
+      try {
+        if (!signer) { statusText.innerText = "Connect wallet first"; return; }
+        statusText.innerText = "Submitting claim...";
+        const tx = await contractRW.claim({ gasLimit: 300000 });
+        statusText.innerText = "Claim tx sent: " + tx.hash;
+        await tx.wait();
+        statusText.innerText = "Claim confirmed";
+        await refreshUser();
+      } catch (err) {
+        console.error("claimAction err", err);
+        statusText.innerText = (err && err.message) ? err.message : "Claim failed";
+      }
+    }
+
+    // public buy 1 token
+    async function buyOne() {
+      try {
+        if (!signer) { statusText.innerText = "Connect wallet first"; return; }
+        statusText.innerText = "Preparing mint...";
+        const price = await contractRO.mintPriceWei().catch(()=>ethers.BigNumber.from("0"));
+        const tx = await contractRW.publicMint(1, { value: price, gasLimit: 400000 });
+        statusText.innerText = "Mint tx sent: " + tx.hash;
+        await tx.wait();
+        statusText.innerText = "Mint confirmed";
+        await refreshUser();
+      } catch (err) {
+        console.error("buyOne err", err);
+        statusText.innerText = (err && err.message) ? err.message : "Mint failed";
+      }
+    }
+
+    // UI bindings
+    connectBtn.addEventListener('click', async () => {
+      if (!provider) await connectWallet();
+      else await disconnectWallet();
+    });
+
+    claimBtn.addEventListener('click', claimAction);
+    buy1Btn.addEventListener('click', () => buyOne());
+    refreshBtn.addEventListener('click', async () => { statusText.innerText = "Refreshing..."; await refreshReadOnly(); if (address) await refreshUser(); statusText.innerText = "Refreshed"; });
+
+    menuBtn.addEventListener('click', () => { menu.style.display = menu.style.display === 'none' ? 'block' : 'none'; });
+    openSite.addEventListener('click', () => { window.open(document.getElementById('projectUrl').innerText, '_blank'); });
+    exportABI.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(JSON.stringify(ABI, null, 2)); alert('ABI copied'); } catch { alert('Copy failed'); }
+    });
+    copyAddr.addEventListener('click', async () => { try { await navigator.clipboard.writeText(CONTRACT_ADDRESS); alert('Address copied'); } catch { alert('Copy failed'); }});
+    verifyBtn.addEventListener('click', () => { window.open('https://basescan.org/address/' + CONTRACT_ADDRESS, '_blank'); });
+
+    // Auto refresh read-only every 20s
+    (async function init() {
+      await refreshReadOnly();
+      setInterval(refreshReadOnly, 20000);
+    })();
+
+    // expose for debugging if embedded
+    window.GMCMini = { connectWallet, disconnectWallet, refreshReadOnly, refreshUser };
+  })();
+  </script>
+</body>
+</html>
