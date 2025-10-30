@@ -3,150 +3,188 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GMC Mini App (iframe)</title>
-
-<!-- Tailwind-like minimal styles (self-contained) -->
+<title>GMC Mini App — Market Watch & Voting</title>
 <style>
-  :root {
-    --bg: #0b1220;
-    --card: rgba(255,255,255,0.04);
-    --muted: rgba(255,255,255,0.65);
-    --accent: #7c3aed;
-    --accent2: #06b6d4;
-    --success: #10b981;
-  }
-  html,body {height:100%; margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
-  body {background: linear-gradient(180deg,#071026 0%, #0b1220 100%); color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
-  .wrap {max-width:980px; margin:12px auto; padding:12px;}
-  .card {background:var(--card); border-radius:14px; padding:14px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); backdrop-filter: blur(6px);}
-  .row {display:flex; gap:12px; align-items:center;}
-  .col {display:flex; flex-direction:column; gap:8px;}
-  .btn {background:var(--accent); color:#fff; border:none; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600;}
-  .btn.secondary {background:#111827; color:var(--muted); border:1px solid rgba(255,255,255,0.04);}
-  .pill {padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.03); font-size:13px;}
-  .small {font-size:13px; color:var(--muted);}
-  .muted {color:var(--muted);}
-  .grid {display:grid; gap:8px;}
-  .grid.cols-2 {grid-template-columns: 1fr 1fr;}
-  .label {font-size:12px; color:rgba(255,255,255,0.7);}
-  .value {font-size:18px; font-weight:700;}
-  .topbar {display:flex; justify-content:space-between; align-items:center; gap:12px;}
-  .logo {width:44px; height:44px; background: linear-gradient(135deg,#7c3aed, #06b6d4); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:16px;}
-  .drop {position:relative;}
-  .dropdown {position:absolute; right:0; top:40px; background:var(--card); padding:8px; border-radius:8px; min-width:180px; box-shadow:0 8px 20px rgba(2,6,23,0.6);}
-  .dropdown button {display:block; width:100%; text-align:left; border:none; background:none; color:var(--muted); padding:8px 6px; cursor:pointer; border-radius:6px;}
-  .dropdown button:hover {background:rgba(255,255,255,0.02); color:#fff;}
-  .connect-btn {background:linear-gradient(90deg,#7c3aed,#06b6d4); color:#fff; padding:8px 12px; border-radius:10px; font-weight:700;}
-  .small-note {font-size:12px; color:rgba(255,255,255,0.6);}
-  .status {font-size:13px; color:#9ca3af;}
-  @media (max-width:720px) {
-    .wrap {padding:8px;}
-    .grid.cols-2 {grid-template-columns: 1fr;}
-    .topbar {flex-direction:column; align-items:flex-start; gap:8px;}
-  }
+  :root{--bg:#071026;--card:rgba(255,255,255,0.03);--muted:rgba(255,255,255,0.7);--accent:#7c3aed;--accent2:#06b6d4;--success:#10b981}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  body{background:linear-gradient(180deg,#071026 0%,#0b1220 100%);color:#fff}
+  .wrap{max-width:980px;margin:12px auto;padding:12px}
+  .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800}
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02)}
+  .btn{background:var(--accent);border:none;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn.alt{background:#111827;color:var(--muted);border:1px solid rgba(255,255,255,0.03)}
+  .grid{display:grid;gap:12px}
+  .cols-3{grid-template-columns:1fr 360px 280px}
+  .cols-2{grid-template-columns:1fr 320px}
+  .label{font-size:12px;color:rgba(255,255,255,0.7)}
+  .value{font-size:18px;font-weight:700}
+  .small{font-size:13px;color:rgba(255,255,255,0.75)}
+  .muted{color:rgba(255,255,255,0.6)}
+  input[type=number], input[type=text]{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:#fff}
+  button[disabled]{opacity:0.5;cursor:not-allowed}
+  @media (max-width:900px){.cols-3{grid-template-columns:1fr}.cols-2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="topbar">
-        <div class="row">
+      <div class="top">
+        <div style="display:flex;gap:12px;align-items:center">
           <div class="logo">GMC</div>
-          <div style="margin-left:10px">
+          <div>
             <div style="font-weight:800">Groupies Meme Coin</div>
-            <div class="small-note">Digitalknuckles • <span id="projectUrl">digitalknuckles.xyz</span></div>
+            <div class="small muted">Digitalknuckles • <span id="projectUrl">digitalknuckles.xyz</span></div>
           </div>
         </div>
 
-        <div class="row">
-          <div id="connectionBlock" class="row">
-            <div id="addrShort" class="pill small muted">Not connected</div>
-            <div style="width:8px"></div>
-            <button id="connectBtn" class="connect-btn">Connect Wallet</button>
-          </div>
-
-          <div class="drop" style="margin-left:8px">
-            <button id="menuBtn" class="pill small">Menu ▾</button>
-            <div id="menu" class="dropdown" style="display:none">
-              <button id="refreshBtn">Refresh</button>
-              <button id="openSite">Open Site</button>
-              <button id="exportABI">Copy ABI (clipboard)</button>
-            </div>
-          </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="ownerBadge" class="pill small muted" style="display:none">Owner</div>
+          <div id="addrShort" class="pill small muted">Not connected</div>
+          <button id="connectBtn" class="btn">Connect</button>
         </div>
       </div>
 
-      <hr style="border:none; height:1px; background:rgba(255,255,255,0.02); margin:12px 0" />
+      <hr style="border:none;height:1px;background:rgba(255,255,255,0.02);margin:12px 0" />
 
-      <div class="grid cols-2">
-        <div class="card" style="padding:12px">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <div class="label">Your Balance</div>
-              <div id="userBalance" class="value">—</div>
-              <div class="small muted" id="userAddressFull">—</div>
+      <div class="grid cols-3">
+        <!-- Main column: Claim + Market Watch + Activity -->
+        <div>
+          <div class="card" style="margin-bottom:12px;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="label">Claim Center</div>
+                <div class="value">Earn free GMC — Claim streaks & bonuses</div>
+              </div>
+              <div class="small muted">{interactive}</div>
             </div>
-            <div style="text-align:right">
-              <div class="label">Tier</div>
-              <div id="tierLabel" class="value">—</div>
-              <div class="small muted">Streak Days: <span id="streakDays">0</span></div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+              <div style="flex:1">
+                <div class="label">Your balance</div>
+                <div id="userBalance" class="value">—</div>
+                <div class="small muted" id="userAddressFull">—</div>
+              </div>
+
+              <div style="width:180px;text-align:right">
+                <div class="label">Tier</div>
+                <div id="tierLabel" class="value">—</div>
+                <div class="small muted">Streak days: <span id="streakDays">0</span></div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button id="claimBtn" class="btn" style="flex:1">Claim</button>
+              <button id="depositBtn" class="btn alt" style="flex:1">Deposit for Vote</button>
+            </div>
+
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+              <div class="small">Next claim:</div>
+              <div id="nextCountdown" class="small muted">—</div>
             </div>
           </div>
 
-          <div style="margin-top:12px; display:flex; gap:8px;">
-            <button id="claimBtn" class="btn" style="flex:1">Claim</button>
-            <button id="buy1Btn" class="btn secondary" style="flex:1">Buy 1</button>
+          <div class="card" style="margin-bottom:12px;padding:12px">
+            <div class="label">Market Watch — Top 100 by yield</div>
+            <div class="small muted">Data supplied by your backend / indexer (set LEADERBOARD_API in frontend)</div>
+            <div id="leaderboard" style="margin-top:8px;max-height:260px;overflow:auto;padding-right:6px"></div>
           </div>
 
-          <div style="margin-top:10px" class="small-note">Next claim in: <span id="nextCountdown">—</span></div>
+          <div class="card" style="padding:12px">
+            <div class="label">Activity Feed</div>
+            <div id="activityFeed" style="margin-top:8px;max-height:180px;overflow:auto"></div>
+          </div>
         </div>
 
-        <div class="card" style="padding:12px">
-          <div class="label">Contract</div>
-          <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
-            <div style="flex:1">
-              <div class="small-note">Address</div>
-              <div id="contractAddr" class="value" style="font-size:13px; word-break:break-all"></div>
+        <!-- Middle column: Voting Arena -->
+        <div>
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <div class="label">Voting Arena</div>
+            <div class="small muted">Vote with deposited GMC — owner manages events off-chain or via owner UI</div>
+
+            <div style="margin-top:10px">
+              <div class="label">Your deposited voting balance</div>
+              <div id="votingDeposit" class="value">0</div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label class="label">Deposit amount (whole tokens)</label>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <input id="depositAmount" type="number" min="1" value="1" />
+                <button id="doDepositBtn" class="btn">Deposit</button>
+              </div>
+            </div>
+
+            <hr style="margin:10px 0;border:none;height:1px;background:rgba(255,255,255,0.02)" />
+
+            <div class="label">Active events</div>
+            <div id="voteEvents" style="margin-top:8px;max-height:360px;overflow:auto"></div>
+          </div>
+
+          <div class="card" style="padding:12px">
+            <div class="label">Market Pool</div>
+            <div class="small muted">Tokens deposited to the contract (voting + pool)</div>
+            <div style="margin-top:8px" class="value" id="marketPool">—</div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="refreshBtn" class="btn alt">Refresh</button>
+              <button id="viewOnBaseScan" class="btn">View on BaseScan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: Contract summary & admin controls -->
+        <div>
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <div class="label">Contract</div>
+            <div style="margin-top:8px"><div class="small muted">Address</div><div id="contractAddr" class="small">0xREPLACE_WITH_YOUR_PROXY_ADDRESS</div></div>
+
+            <div style="margin-top:8px" class="grid">
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Total Minted</div><div id="totalMinted" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Public Mint</div><div id="pubMint" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Mint price (wei)</div><div id="mintPrice" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Market Cap (approx)</div><div id="marketCap" class="value">—</div></div>
+            </div>
+
+            <div style="margin-top:10px">
+              <div class="small muted">Owner controls</div>
+              <div id="adminControls" style="margin-top:8px;display:none">
+                <button id="ownerMintBtn" class="btn alt">Owner Mint (ABI write)</button>
+                <button id="finalizeBtn" class="btn alt">Finalize Event (owner)</button>
+              </div>
             </div>
           </div>
 
-          <div style="margin-top:10px" class="grid">
-            <div class="row" style="justify-content:space-between"><div class="small-note">Total Minted</div><div id="totalMinted" class="value">—</div></div>
-            <div class="row" style="justify-content:space-between"><div class="small-note">Public Mint</div><div id="pubMint" class="value">—</div></div>
-            <div class="row" style="justify-content:space-between"><div class="small-note">Mint Price (wei)</div><div id="mintPrice" class="value">—</div></div>
-            <div class="row" style="justify-content:space-between"><div class="small-note">Market Cap (approx)</div><div id="marketCap" class="value">—</div></div>
-          </div>
-
-          <div style="margin-top:10px; display:flex; gap:8px;">
-            <button id="copyAddr" class="btn secondary" style="flex:1">Copy Address</button>
-            <button id="verifyBtn" class="btn" style="flex:1">Verify on BaseScan</button>
+          <div class="card" style="padding:12px">
+            <div class="small muted">Quick links</div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="copyAddrBtn" class="btn alt">Copy Address</button>
+              <button id="exportABI" class="btn alt">Copy ABI</button>
+            </div>
           </div>
         </div>
+
       </div>
 
-      <div style="margin-top:12px;" class="small-note">
-        <strong>Note:</strong> Token value shown is approximate and computed using contract mintPrice if available. Add liquidity and price feeds to show market price.
-      </div>
-
-      <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
-        <div class="small-note">Status: <span id="statusText">Ready</span></div>
-      </div>
+      <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.6)">Designed for iframe & mini-apps. API endpoints left blank: set <code>LEADERBOARD_API</code> and <code>VOTING_API</code> to enable server-driven lists.</div>
     </div>
   </div>
 
-  <!-- Dependencies (CDN) -->
+  <!-- Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
 
   <script>
-  (function () {
-    // ----- CONFIG -----
+  (function(){
+    // CONFIG: set these before hosting
     const CONTRACT_ADDRESS = "0xREPLACE_WITH_YOUR_PROXY_ADDRESS";
+    const LEADERBOARD_API = ""; // <-- set your leaderboard backend endpoint (leave blank to disable)
+    const VOTING_API = ""; // <-- optional backend to list events; if blank we'll try on-chain ids 1..N
+    const RPC = "https://mainnet.base.org"; // Base mainnet RPC (change for testnet)
     document.getElementById('contractAddr').innerText = CONTRACT_ADDRESS;
-    document.getElementById('projectUrl').innerText = "https://digitalknuckles.xyz/";
 
-    // Minimal ABI used by this UI — add functions if your contract differs
+    // Minimal ABI (extend if your contract differs)
     const ABI = [
       "function name() view returns (string)",
       "function symbol() view returns (string)",
@@ -157,28 +195,23 @@
       "function publicMintEnabled() view returns (bool)",
       "function mintPriceWei() view returns (uint256)",
       "function publicMint(uint256) payable",
-      "function claim()"
+      "function claim()",
+      "function depositForVote(uint256)",
+      "function voteOnEvent(uint256,uint256,bool)",
+      "function getVoteEvent(uint256) view returns (uint256,string,uint256,uint256,uint256,uint256,bool,bool,uint256)",
+      "function votingDeposit(address) view returns (uint256)",
+      "function marketPoolBalance() view returns (uint256)",
+      "function owner() view returns (address)"
     ];
 
-    // web3modal + provider setup
-    let provider, signer, address, chainId;
-    let readonlyProvider;
-    let contractRO, contractRW;
-    const providerOptions = {
-      walletconnect: {
-        package: window.WalletConnectProvider.default,
-        options: {
-          rpc: { 8453: "https://mainnet.base.org" },
-          chainId: 8453
-        }
-      }
-    };
-    const web3Modal = new window.Web3Modal.default({ cacheProvider: true, providerOptions });
+    // web3modal setup
+    const providerOptions = { walletconnect: { package: window.WalletConnectProvider.default, options: { rpc: { 8453: RPC }, chainId: 8453 } } };
+    const web3Modal = new window.Web3Modal.default({cacheProvider:true, providerOptions});
 
-    // helpers
-    function shortAddr(a){ return a ? (a.slice(0,6) + '...' + a.slice(-4)) : '—'; }
-    function toHuman(units, dec){ try { return ethers.utils.formatUnits(units, dec); } catch(e){ return '0'; } }
-    function safeGet(obj, idx, fallback=null){ try { return obj[idx]; } catch { return fallback; } }
+    let provider, signer, userAddress, chainId;
+    const readonlyProvider = new ethers.providers.JsonRpcProvider(RPC);
+    let contractRO = new ethers.Contract(CONTRACT_ADDRESS, ABI, readonlyProvider);
+    let contractRW = null;
 
     // DOM refs
     const connectBtn = document.getElementById('connectBtn');
@@ -190,26 +223,23 @@
     const mintPriceEl = document.getElementById('mintPrice');
     const marketCapEl = document.getElementById('marketCap');
     const claimBtn = document.getElementById('claimBtn');
-    const buy1Btn = document.getElementById('buy1Btn');
-    const statusText = document.getElementById('statusText');
+    const depositBtn = document.getElementById('depositBtn');
+    const doDepositBtn = document.getElementById('doDepositBtn');
+    const depositAmountInput = document.getElementById('depositAmount');
+    const votingDepositEl = document.getElementById('votingDeposit');
+    const voteEventsContainer = document.getElementById('voteEvents');
+    const leaderboardEl = document.getElementById('leaderboard');
+    const nextCountdownEl = document.getElementById('nextCountdown');
     const tierLabelEl = document.getElementById('tierLabel');
     const streakDaysEl = document.getElementById('streakDays');
-    const nextCountdownEl = document.getElementById('nextCountdown');
+    const marketPoolEl = document.getElementById('marketPool');
+    const ownerBadge = document.getElementById('ownerBadge');
+    const adminControls = document.getElementById('adminControls');
     const refreshBtn = document.getElementById('refreshBtn');
-    const menuBtn = document.getElementById('menuBtn');
-    const menu = document.getElementById('menu');
-    const copyAddr = document.getElementById('copyAddr');
-    const verifyBtn = document.getElementById('verifyBtn');
-    const openSite = document.getElementById('openSite');
-    const exportABI = document.getElementById('exportABI');
 
-    // initial readonly provider + contract
-    readonlyProvider = new ethers.providers.JsonRpcProvider("https://mainnet.base.org");
-    contractRO = new ethers.Contract(CONTRACT_ADDRESS, ABI, readonlyProvider);
-
-    // set initial UI
-    addrShort.innerText = "Not connected";
-    userAddressFull.innerText = "";
+    // small helpers
+    function short(a){ return a ? (a.slice(0,6)+"..."+a.slice(-4)) : '—'; }
+    function toHuman(bn, dec){ try{return ethers.utils.formatUnits(bn, dec)}catch{return '0'} }
 
     async function refreshReadOnly() {
       try {
@@ -217,202 +247,155 @@
           contractRO.name().catch(()=>null),
           contractRO.symbol().catch(()=>null),
           contractRO.decimals().catch(()=>18),
-          contractRO.totalSupply().catch(()=>ethers.BigNumber.from("0")),
+          contractRO.totalSupply().catch(()=>ethers.BigNumber.from('0')),
           contractRO.publicMintEnabled().catch(()=>false),
-          contractRO.mintPriceWei().catch(()=>ethers.BigNumber.from("0"))
+          contractRO.mintPriceWei().catch(()=>ethers.BigNumber.from('0'))
         ]);
         const decimals = Number(dec || 18);
         totalMintedEl.innerText = toHuman(total, decimals);
-        pubMintEl.innerText = pubEnabled ? "Enabled" : "Disabled";
-        mintPriceEl.innerText = mintPrice ? mintPrice.toString() : "0";
+        pubMintEl.innerText = pubEnabled ? 'Enabled' : 'Disabled';
+        mintPriceEl.innerText = mintPrice ? mintPrice.toString() : '0';
+        // market cap approx: total * mintPrice (wei*units) - this is a rough proxy, not fiat
+        try{const mc = total.mul(mintPrice || ethers.BigNumber.from('0')); marketCapEl.innerText = mc.toString();}catch(e){marketCapEl.innerText='—'}
 
-        // approximate market cap using mintPrice (only approximate; front-end note given)
-        try {
-          const marketCapUnits = total.mul(mintPrice || ethers.BigNumber.from("0"));
-          // marketCapUnits is in wei * tokenUnits; it's not a direct fiat price — we show approximate using mintPrice as proxy
-          marketCapEl.innerText = marketCapUnits.toString();
-        } catch (e) {
-          marketCapEl.innerText = "—";
-        }
+        // market pool
+        const pool = await contractRO.marketPoolBalance().catch(()=>ethers.BigNumber.from('0'));
+        marketPoolEl.innerText = toHuman(pool, decimals);
 
-      } catch (err) {
-        console.error("refreshReadOnly error", err);
-      }
+      } catch (err) { console.error('refreshReadOnly', err); }
     }
 
-    // tick update for countdowns
-    let timerInterval = null;
-    function startTimerInterval() {
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (!address) return;
-        // compute countdown from claimInfo cached in UI
-        if (window._lastClaimInfo) {
-          const now = Math.floor(Date.now()/1000);
-          const availableAt = Number(window._lastClaimInfo.lastClaimAt || 0) + Number(window._lastClaimInfo.nextTimeout || 0);
-          const diff = availableAt > now ? availableAt - now : 0;
-          if (diff === 0) nextCountdownEl.innerText = "Available now";
-          else {
-            const m = Math.floor(diff/60); const s = diff % 60;
-            nextCountdownEl.innerText = `${m}m ${s}s`;
-          }
-        }
-      }, 1000);
-    }
-
-    // connect wallet
-    async function connectWallet() {
-      try {
-        statusText.innerText = "Connecting...";
-        const instance = await web3Modal.connect();
-        provider = new ethers.providers.Web3Provider(instance);
-        signer = provider.getSigner();
-        address = await signer.getAddress();
-        chainId = (await provider.getNetwork()).chainId;
-
-        // prepare contract RW
-        contractRW = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-
-        addrShort.innerText = shortAddr(address);
-        userAddressFull.innerText = address;
-        connectBtn.innerText = "Connected";
-
-        // subscribe events
-        if (instance.on) {
-          instance.on("accountsChanged", (accounts) => {
-            if (accounts.length === 0) disconnectWallet();
-            else { address = accounts[0]; addrShort.innerText = shortAddr(address); userAddressFull.innerText = address; refreshUser(); }
-          });
-          instance.on("chainChanged", (_chainId) => { window.location.reload(); });
-        }
-
-        await refreshUser();
-        startTimerInterval();
-        statusText.innerText = "Connected";
-      } catch (err) {
-        console.error(err);
-        statusText.innerText = "Connection failed";
-      }
-    }
-
-    async function disconnectWallet() {
-      try {
-        await web3Modal.clearCachedProvider();
-      } catch(e){}
-      provider = signer = address = contractRW = null;
-      addrShort.innerText = "Not connected";
-      userAddressFull.innerText = "";
-      connectBtn.innerText = "Connect Wallet";
-      statusText.innerText = "Disconnected";
-      window._lastClaimInfo = null;
-      if (timerInterval) clearInterval(timerInterval);
-    }
-
-    // read user-specific info
     async function refreshUser() {
+      if (!userAddress) return;
       try {
-        if (!address) return;
-        // read balance & claim info
         const dec = Number(await contractRO.decimals().catch(()=>18));
-        const [bal, rawClaimInfo] = await Promise.all([
-          contractRO.balanceOf(address).catch(()=>ethers.BigNumber.from("0")),
-          contractRO.getClaimInfo(address).catch(()=>[0,0,0,0,0,0])
+        const [bal, claimInfoRaw, deposit] = await Promise.all([
+          contractRO.balanceOf(userAddress).catch(()=>ethers.BigNumber.from('0')),
+          contractRO.getClaimInfo(userAddress).catch(()=>[0,0,0,0,0,0]),
+          contractRO.votingDeposit(userAddress).catch(()=>ethers.BigNumber.from('0'))
         ]);
         userBalanceEl.innerText = toHuman(bal, dec);
-        // getClaimInfo returns: (lastClaimAt, nextTimeout, tier, claimsInCycle, consecutiveDays, cycleStart)
-        const info = {
-          lastClaimAt: Number(safeGet(rawClaimInfo, 0, 0)),
-          nextTimeout: Number(safeGet(rawClaimInfo, 1, 0)),
-          tier: Number(safeGet(rawClaimInfo, 2, 0)),
-          claimsInCycle: Number(safeGet(rawClaimInfo, 3, 0)),
-          consecutiveDays: Number(safeGet(rawClaimInfo, 4, 0)),
-          cycleStart: Number(safeGet(rawClaimInfo, 5, 0)),
-        };
-        window._lastClaimInfo = info;
-        tierLabelEl.innerText = info.tier === 0 ? "Claim Streak" : (info.tier === 1 ? "Daily Streak" : "Max Streak");
+        votingDepositEl.innerText = toHuman(deposit, dec);
+
+        const info = { lastClaimAt: Number(claimInfoRaw[0]), nextTimeout: Number(claimInfoRaw[1]), tier: Number(claimInfoRaw[2]), claimsInCycle: Number(claimInfoRaw[3]), consecutiveDays: Number(claimInfoRaw[4]), cycleStart: Number(claimInfoRaw[5]) };
+        tierLabelEl.innerText = info.tier===0? 'Claim Streak' : (info.tier===1? 'Daily Streak' : 'Max Streak');
         streakDaysEl.innerText = String(info.consecutiveDays || 0);
 
-        // compute next available
-        if (!info.lastClaimAt || info.lastClaimAt === 0) nextCountdownEl.innerText = "Available now";
-        else {
-          const now = Math.floor(Date.now()/1000);
-          const availableAt = info.lastClaimAt + info.nextTimeout;
-          const diff = availableAt > now ? availableAt - now : 0;
-          if (diff === 0) nextCountdownEl.innerText = "Available now";
-          else {
-            const m = Math.floor(diff/60); const s = diff % 60;
-            nextCountdownEl.innerText = `${m}m ${s}s`;
-          }
-        }
+        if (!info.lastClaimAt || info.lastClaimAt===0) nextCountdownEl.innerText = 'Available now';
+        else { const now = Math.floor(Date.now()/1000); const avail = info.lastClaimAt + info.nextTimeout; const diff = avail>now ? avail-now : 0; if(diff===0) nextCountdownEl.innerText = 'Available now'; else nextCountdownEl.innerText = Math.floor(diff/60)+'m '+(diff%60)+'s'; }
 
-        // refresh global read-onlys
-        await refreshReadOnly();
+      } catch (err) { console.error('refreshUser', err); }
+    }
 
-      } catch (err) {
-        console.error("refreshUser", err);
+    // leaderboard fetch (API left blank); if blank show instructions
+    async function loadLeaderboard(){
+      leaderboardEl.innerHTML = '';
+      if (!LEADERBOARD_API) { leaderboardEl.innerHTML = '<div class="small muted">Leaderboard API not configured. Set LEADERBOARD_API in the script to load top wallets from your indexer.</div>'; return; }
+      try{
+        const r = await fetch(LEADERBOARD_API); if(!r.ok) throw new Error('no api'); const json = await r.json();
+        const list = json.slice(0,100);
+        const ol = document.createElement('ol'); ol.style.paddingLeft='18px';
+        list.forEach((row,i)=>{ const li=document.createElement('li'); li.style.margin='6px 0'; li.innerHTML = `<span style="font-weight:700">${i+1}.</span> <span style="margin-left:6px">${short(row.address)}</span> — <span class="muted">${row.tokensHuman}</span>`; ol.appendChild(li); });
+        leaderboardEl.appendChild(ol);
+      }catch(e){ console.error('leaderboard',e); leaderboardEl.innerHTML = '<div class="small muted">Failed to load leaderboard — check your backend.</div>'; }
+    }
+
+    // load vote events: tries backend, otherwise tries on-chain ids up to N
+    async function loadVoteEvents(maxIds=8){
+      voteEventsContainer.innerHTML = '';
+      if (VOTING_API){
+        try{ const r = await fetch(VOTING_API); if(!r.ok) throw new Error('no api'); const events = await r.json(); renderEvents(events); return; }catch(e){ console.error('voting api', e); }
+      }
+      // on-chain fallback
+      for(let id=1; id<=maxIds; id++){
+        try{
+          const ev = await contractRO.getVoteEvent(id);
+          if (Number(ev[0])===0) continue;
+          const eventObj = { id: Number(ev[0]), title: ev[1], startTime: Number(ev[2]), endTime: Number(ev[3]), yesVotes: ev[4].toString(), noVotes: ev[5].toString(), finalized: ev[6], passed: ev[7], threshold: ev[8].toString() };
+          renderEventCard(eventObj);
+        }catch(e){ /*ignore missing*/ }
       }
     }
+
+    function renderEvents(events){ events.forEach(renderEventCard); }
+
+    function renderEventCard(ev){
+      const dec = 18; // show human units using contract decimals (could read dynamically)
+      const card = document.createElement('div'); card.className='card'; card.style.padding='10px'; card.style.marginBottom='8px';
+      const title = document.createElement('div'); title.innerHTML = `<div style="font-weight:700">${ev.title || 'Untitled'}</div>`;
+      const times = document.createElement('div'); times.className='small muted'; const now = Math.floor(Date.now()/1000);
+      const state = now < ev.startTime ? 'Upcoming' : (now <= ev.endTime ? 'Live' : (ev.finalized? (ev.passed? 'PASSED':'BASHED') : 'Ended'));
+      times.innerText = `${state} • ${new Date(ev.startTime*1000).toLocaleString()} — ${new Date(ev.endTime*1000).toLocaleString()}`;
+
+      const progress = document.createElement('div'); progress.style.marginTop='8px'; progress.innerHTML = `<div class="small">Yes: ${ethers.utils.formatUnits(ev.yesVotes || '0', dec)} — No: ${ethers.utils.formatUnits(ev.noVotes || '0', dec)}</div>`;
+
+      const controls = document.createElement('div'); controls.style.marginTop='8px'; controls.style.display='flex'; controls.style.gap='8px';
+      const passBtn = document.createElement('button'); passBtn.className='btn'; passBtn.innerText='Pass'; passBtn.onclick = ()=> voteOnEvent(ev.id, 1, true);
+      const bashBtn = document.createElement('button'); bashBtn.className='btn alt'; bashBtn.innerText='Bash'; bashBtn.onclick = ()=> voteOnEvent(ev.id, 1, false);
+      controls.appendChild(passBtn); controls.appendChild(bashBtn);
+
+      card.appendChild(title); card.appendChild(times); card.appendChild(progress); card.appendChild(controls);
+      voteEventsContainer.appendChild(card);
+    }
+
+    // deposit workflow
+    async function depositForVote(){
+      try{
+        if(!signer){ status('Connect wallet'); return; }
+        const amt = Number(depositAmountInput.value); if(!amt || amt<=0){ status('Invalid amount'); return; }
+        status('Submitting deposit...');
+        const tx = await contractRW.depositForVote(amt);
+        status('Deposit tx: '+tx.hash);
+        await tx.wait(); status('Deposit confirmed'); await refreshUser(); loadVoteEvents();
+      }catch(e){ console.error(e); status(e?.message || 'Deposit failed'); }
+    }
+
+    // vote workflow
+    async function voteOnEvent(eventId, amountWhole, pass){
+      try{
+        if(!signer){ status('Connect wallet'); return; }
+        status('Submitting vote...');
+        const tx = await contractRW.voteOnEvent(eventId, amountWhole, pass);
+        status('Vote tx: '+tx.hash);
+        await tx.wait(); status('Vote confirmed'); await refreshUser(); loadVoteEvents();
+      }catch(e){ console.error(e); status(e?.message || 'Vote failed'); }
+    }
+
+    function status(t){ document.getElementById('statusText')?.remove(); const el=document.createElement('div'); el.id='statusText'; el.style.marginTop='8px'; el.className='small muted'; el.innerText=t; document.querySelector('.wrap .card').appendChild(el); }
 
     // claim action
-    async function claimAction() {
-      try {
-        if (!signer) { statusText.innerText = "Connect wallet first"; return; }
-        statusText.innerText = "Submitting claim...";
-        const tx = await contractRW.claim({ gasLimit: 300000 });
-        statusText.innerText = "Claim tx sent: " + tx.hash;
-        await tx.wait();
-        statusText.innerText = "Claim confirmed";
+    async function doClaim(){ if(!signer){ status('Connect wallet'); return; } try{ status('Claiming...'); const tx = await contractRW.claim({gasLimit:300000}); status('Tx: '+tx.hash); await tx.wait(); status('Claim confirmed'); await refreshUser(); }catch(e){ console.error(e); status(e?.message || 'Claim failed'); } }
+
+    // connect/disconnect handlers
+    async function connect(){
+      try{
+        const instance = await web3Modal.connect(); provider = new ethers.providers.Web3Provider(instance); signer = provider.getSigner(); userAddress = await signer.getAddress(); chainId = (await provider.getNetwork()).chainId; contractRW = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        addrShort.innerText = short(userAddress); userAddressFull.innerText = userAddress; connectBtn.innerText='Connected';
+        // owner check
+        const owner = await contractRO.owner().catch(()=>null);
+        if (owner && owner.toLowerCase()===userAddress.toLowerCase()){ ownerBadge.style.display='inline-block'; adminControls.style.display='block'; }
         await refreshUser();
-      } catch (err) {
-        console.error("claimAction err", err);
-        statusText.innerText = (err && err.message) ? err.message : "Claim failed";
-      }
+        // subscribe
+        if (instance.on){ instance.on('accountsChanged', (accs)=>{ if(!accs.length) disconnect(); else { userAddress=accs[0]; addrShort.innerText=short(userAddress); userAddressFull.innerText=userAddress; refreshUser(); } }); instance.on('chainChanged', ()=>window.location.reload()); }
+      }catch(e){ console.error('connect',e); status('Connect failed'); }
     }
+    async function disconnect(){ try{ await web3Modal.clearCachedProvider(); }catch(e){} provider=signer=userAddress=null; addrShort.innerText='Not connected'; userAddressFull.innerText=''; connectBtn.innerText='Connect'; ownerBadge.style.display='none'; adminControls.style.display='none'; }
 
-    // public buy 1 token
-    async function buyOne() {
-      try {
-        if (!signer) { statusText.innerText = "Connect wallet first"; return; }
-        statusText.innerText = "Preparing mint...";
-        const price = await contractRO.mintPriceWei().catch(()=>ethers.BigNumber.from("0"));
-        const tx = await contractRW.publicMint(1, { value: price, gasLimit: 400000 });
-        statusText.innerText = "Mint tx sent: " + tx.hash;
-        await tx.wait();
-        statusText.innerText = "Mint confirmed";
-        await refreshUser();
-      } catch (err) {
-        console.error("buyOne err", err);
-        statusText.innerText = (err && err.message) ? err.message : "Mint failed";
-      }
-    }
+    // event listeners
+    connectBtn.addEventListener('click', ()=>{ if(!provider) connect(); else disconnect(); });
+    doDepositBtn.addEventListener('click', depositForVote);
+    claimBtn.addEventListener('click', doClaim);
+    refreshBtn.addEventListener('click', async ()=>{ status('Refreshing...'); await refreshReadOnly(); if(userAddress) await refreshUser(); status('Refreshed'); });
+    document.getElementById('viewOnBaseScan').addEventListener('click', ()=> window.open('https://basescan.org/address/'+CONTRACT_ADDRESS, '_blank'));
+    document.getElementById('exportABI').addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(ABI,null,2)); alert('ABI copied'); }catch(e){ alert('copy failed') } });
 
-    // UI bindings
-    connectBtn.addEventListener('click', async () => {
-      if (!provider) await connectWallet();
-      else await disconnectWallet();
-    });
+    // initial load
+    (async function(){ await refreshReadOnly(); await loadLeaderboard(); await loadVoteEvents(6); setInterval(()=>{ refreshReadOnly(); if(userAddress) refreshUser(); },20000); })();
 
-    claimBtn.addEventListener('click', claimAction);
-    buy1Btn.addEventListener('click', () => buyOne());
-    refreshBtn.addEventListener('click', async () => { statusText.innerText = "Refreshing..."; await refreshReadOnly(); if (address) await refreshUser(); statusText.innerText = "Refreshed"; });
-
-    menuBtn.addEventListener('click', () => { menu.style.display = menu.style.display === 'none' ? 'block' : 'none'; });
-    openSite.addEventListener('click', () => { window.open(document.getElementById('projectUrl').innerText, '_blank'); });
-    exportABI.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(JSON.stringify(ABI, null, 2)); alert('ABI copied'); } catch { alert('Copy failed'); }
-    });
-    copyAddr.addEventListener('click', async () => { try { await navigator.clipboard.writeText(CONTRACT_ADDRESS); alert('Address copied'); } catch { alert('Copy failed'); }});
-    verifyBtn.addEventListener('click', () => { window.open('https://basescan.org/address/' + CONTRACT_ADDRESS, '_blank'); });
-
-    // Auto refresh read-only every 20s
-    (async function init() {
-      await refreshReadOnly();
-      setInterval(refreshReadOnly, 20000);
-    })();
-
-    // expose for debugging if embedded
-    window.GMCMini = { connectWallet, disconnectWallet, refreshReadOnly, refreshUser };
+    // expose for debugging
+    window.GMCMini = { refreshReadOnly, refreshUser, loadLeaderboard, loadVoteEvents };
   })();
   </script>
 </body>
 </html>
+
