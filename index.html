@@ -74,9 +74,10 @@
     border 0.3s ease,
     background 0.4s ease;
   overflow: hidden;
+  z-index: 1;
 }
 
-/* Glow layer that reacts to cursor/light position */
+/* === Soft glow following cursor === */
 .card::before {
   content: "";
   position: absolute;
@@ -86,7 +87,7 @@
   height: 200%;
   background: radial-gradient(
     circle at var(--glow-x, 50%) var(--glow-y, 50%),
-    rgba(124, 58, 237, 0.15),
+    rgba(124, 58, 237, 0.18),
     rgba(6, 182, 212, 0.1),
     transparent 70%
   );
@@ -100,6 +101,34 @@
   opacity: 1;
 }
 
+/* === Dynamic reflection plane === */
+.card::after {
+  content: "";
+  position: absolute;
+  bottom: -60%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(124, 58, 237, 0.15),
+    rgba(6, 182, 212, 0.05),
+    transparent 90%
+  );
+  opacity: 0.35;
+  transform: scaleY(-1) translateY(10%);
+  filter: blur(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.card:hover::after {
+  opacity: 0.5;
+  transform: scaleY(-1) translateY(0);
+}
+
+/* === Hover effects === */
 .card:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow:
@@ -108,7 +137,6 @@
   border-color: rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.1);
 }
-
   /* === Header Elements === */
   .top {
     display: flex;
