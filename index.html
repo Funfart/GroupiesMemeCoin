@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GMC Mini App — Market Watch & Voting</title>
+<style>
+  :root{--bg:#071026;--card:rgba(255,255,255,0.03);--muted:rgba(255,255,255,0.7);--accent:#7c3aed;--accent2:#06b6d4;--success:#10b981}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  body{background:linear-gradient(180deg,#071026 0%,#0b1220 100%);color:#fff}
+  .wrap{max-width:980px;margin:12px auto;padding:12px}
+  .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800}
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02)}
+  .btn{background:var(--accent);border:none;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn.alt{background:#111827;color:var(--muted);border:1px solid rgba(255,255,255,0.03)}
+  .grid{display:grid;gap:12px}
+  .cols-3{grid-template-columns:1fr 360px 280px}
+  .cols-2{grid-template-columns:1fr 320px}
+  .label{font-size:12px;color:rgba(255,255,255,0.7)}
+  .value{font-size:18px;font-weight:700}
+  .small{font-size:13px;color:rgba(255,255,255,0.75)}
+  .muted{color:rgba(255,255,255,0.6)}
+  input[type=number], input[type=text]{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:#fff}
+  button[disabled]{opacity:0.5;cursor:not-allowed}
+  @media (max-width:900px){.cols-3{grid-template-columns:1fr}.cols-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <!-- Top Header -->
+      <div class="top">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="logo">GMC</div>
+          <div>
+            <div style="font-weight:800">Groupies Meme Coin</div>
+            <div class="small muted">Digitalknuckles • <span id="projectUrl">digitalknuckles.xyz</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="ownerBadge" class="pill small muted" style="display:none">Owner</div>
+          <div id="addrShort" class="pill small muted">Not connected</div>
+          <button id="connectBtn" class="btn">Connect</button>
+        </div>
+      </div>
+
+      <hr style="border:none;height:1px;background:rgba(255,255,255,0.02);margin:12px 0" />
+
+      <div class="grid cols-3">
+
+        <!-- Left Column: Claim + Market Watch + Activity -->
+        <div>
+          <!-- Claim Center -->
+          <div class="card" style="margin-bottom:12px;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="label">Claim Center</div>
+                <div class="value">Earn free GMC — Claim streaks & bonuses</div>
+              </div>
+              <div class="small muted">{interactive}</div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+              <div style="flex:1">
+                <div class="label">Your balance</div>
+                <div id="userBalance" class="value">—</div>
+                <div class="small muted" id="userAddressFull">—</div>
+              </div>
+              <div style="width:180px;text-align:right">
+                <div class="label">Tier</div>
+                <div id="tierLabel" class="value">—</div>
+                <div class="small muted">Streak days: <span id="streakDays">0</span></div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button id="claimBtn" class="btn" style="flex:1">Claim</button>
+              <button id="depositBtn" class="btn alt" style="flex:1">Deposit for Vote</button>
+            </div>
+
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+              <div class="small">Next claim:</div>
+              <div id="nextCountdown" class="small muted">—</div>
+            </div>
+          </div>
+
+          <!-- Market Watch -->
+          <div class="card" style="margin-bottom:12px;padding:12px">
+            <div class="label">Market Watch — Top 100 by yield</div>
+            <div class="small muted">Data supplied by your backend / indexer (set LEADERBOARD_API in frontend)</div>
+            <div id="leaderboard" style="margin-top:8px;max-height:260px;overflow:auto;padding-right:6px"></div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="card" style="padding:12px">
+            <div class="label">Activity Feed</div>
+            <div id="activityFeed" style="margin-top:8px;max-height:180px;overflow:auto"></div>
+          </div>
+        </div>
+
+        <!-- Middle Column: Voting Arena -->
+        <div>
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <div class="label">Voting Arena</div>
+            <div class="small muted">Vote with deposited GMC — owner manages events off-chain or via owner UI</div>
+
+            <!-- Dynamic Voting Events Container -->
+            <div id="voteEventsContainer" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+              <div class="small muted">Loading events...</div>
+            </div>
+
+            <div style="margin-top:10px">
+              <button id="refreshAllBtn" class="btn alt">🔄 Refresh All Events</button>
+            </div>
+          </div>
+
+          <div class="card" style="padding:12px">
+            <div class="label">Market Pool</div>
+            <div class="small muted">Tokens deposited to the contract (voting + pool)</div>
+            <div style="margin-top:8px" class="value" id="marketPool">—</div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="refreshBtn" class="btn alt">Refresh</button>
+              <button id="viewOnBaseScan" class="btn">View on BaseScan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Contract Summary & Admin -->
+        <div>
+          <div class="card" style="padding:12px;margin-bottom:12px">
+            <div class="label">Contract</div>
+            <div style="margin-top:8px"><div class="small muted">Address</div><div id="contractAddr" class="small">0xREPLACE_WITH_YOUR_PROXY_ADDRESS</div></div>
+
+            <div style="margin-top:8px" class="grid">
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Total Minted</div><div id="totalMinted" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Public Mint</div><div id="pubMint" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Mint price (wei)</div><div id="mintPrice" class="value">—</div></div>
+              <div class="row" style="display:flex;justify-content:space-between"><div class="small muted">Market Cap (approx)</div><div id="marketCap" class="value">—</div></div>
+            </div>
+
+            <div style="margin-top:10px">
+              <div class="small muted">Owner controls</div>
+              <div id="adminControls" style="margin-top:8px;display:none">
+                <button id="ownerMintBtn" class="btn alt">Owner Mint (ABI write)</button>
+                <button id="finalizeBtn" class="btn alt">Finalize Event (owner)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+<script>
+let provider, signer, userAddr;
+const connectBtn = document.getElementById('connectBtn');
+const addrShort = document.getElementById('addrShort');
+const ownerBadge = document.getElementById('ownerBadge');
+const contractAddrEl = document.getElementById('contractAddr');
+const voteEventsContainer = document.getElementById('voteEventsContainer');
+const refreshAllBtn = document.getElementById('refreshAllBtn');
+
+// Replace with your contract ABI and address
+const CONTRACT_ABI = [/*…Your ABI…*/];
+const CONTRACT_ADDRESS = '0xREPLACE_WITH_YOUR_PROXY_ADDRESS';
+
+// Contract instances
+let contractRW, contractRO;
+
+// Connect wallet
+async function connect(){
+  if(window.ethereum){
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddr = await signer.getAddress();
+    addrShort.innerText = userAddr.substring(0,6)+'...'+userAddr.slice(-4);
+
+    contractRW = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    contractRO = contractRW.connect(provider);
+    await checkOwner();
+    fetchVotingEvents();
+  } else {
+    alert('Install MetaMask or compatible wallet');
+  }
+}
+
+async function checkOwner(){
+  try{
+    const owner = await contractRO.owner();
+    if(owner.toLowerCase()===userAddr.toLowerCase()) ownerBadge.style.display='inline-block';
+  }catch(e){console.error(e);}
+}
+
+connectBtn.addEventListener('click', connect);
+
+// Fetch voting events dynamically
+async function fetchVotingEvents() {
+  voteEventsContainer.innerHTML = '<div class="small muted">Loading events...</div>';
+  const eventIds = [1,2,3,4,5]; // Replace with dynamic fetch if available
+  voteEventsContainer.innerHTML = '';
+
+  for(const id of eventIds){
+    try{
+      const ev = await contractRO.getVoteEvent(id);
+      const yes = Number(ethers.utils.formatUnits(ev[4]||'0',18));
+      const no = Number(ethers.utils.formatUnits(ev[5]||'0',18));
+      const total = yes+no;
+      const pct = total ? Math.round((yes/total)*100) : 0;
+
+      const card = document.createElement('div');
+      card.className='card';
+      card.style.padding='8px';
+      card.innerHTML=`
+        <div style="font-weight:700">Event #${id}: ${ev[1]}</div>
+        <div class="small muted" style="margin-bottom:4px">Ends in ${ev[8]||'N/A'} blocks</div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;height:18px;margin-bottom:6px">
+          <div style="width:${pct}%;background:var(--accent);height:100%;text-align:center;color:#fff;font-size:12px">${pct}% YES</div>
+        </div>
+        <div class="small muted">Yes: ${yes} — No: ${no}</div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn" data-id="${id}" data-pass="true" style="flex:1">✅ Vote PASS</button>
+          <button class="btn alt" data-id="${id}" data-pass="false" style="flex:1">❌ Vote BASH</button>
+        </div>
+        <div class="status" style="margin-top:4px"></div>
+      `;
+      voteEventsContainer.appendChild(card);
+
+      const passBtn = card.querySelector('button[data-pass="true"]');
+      const bashBtn = card.querySelector('button[data-pass="false"]');
+      const statusEl = card.querySelector('.status');
+      passBtn.addEventListener('click', ()=>voteOnEvent(id,true,statusEl));
+      bashBtn.addEventListener('click', ()=>voteOnEvent(id,false,statusEl));
+
+    }catch(e){console.error(e);}
+  }
+}
+
+async function voteOnEvent(id, pass, statusEl){
+  try{
+    if(!signer){ alert('Connect wallet first'); return; }
+    statusEl.innerText='Sending vote...';
+    const tx = await contractRW.voteOnEvent(Number(id),1,pass);
+    statusEl.innerText='Tx sent: '+tx.hash;
+    await tx.wait();
+    statusEl.innerText='Vote confirmed';
+    fetchVotingEvents();
+  }catch(e){
+    console.error(e);
+    statusEl.innerText = e?.message || 'Vote failed';
+  }
+}
+
+refreshAllBtn.addEventListener('click', fetchVotingEvents);
+</script>
+</body>
+</html>
