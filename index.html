@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GMC Mini App — Market Watch & Voting</title>
+<style>
+  :root{--bg:#071026;--card:rgba(255,255,255,0.03);--muted:rgba(255,255,255,0.7);--accent:#7c3aed;--accent2:#06b6d4;--success:#10b981}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  body{background:linear-gradient(180deg,#071026 0%,#0b1220 100%);color:#fff}
+  .wrap{max-width:980px;margin:12px auto;padding:12px}
+  .card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter:blur(6px)}
+  .btn{background:var(--accent);border:none;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn.alt{background:#111827;color:var(--muted);border:1px solid rgba(255,255,255,0.03)}
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02)}
+  .value{font-size:18px;font-weight:700}
+  input[type=number]{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:#fff;width:100px}
+  .small{font-size:13px;color:rgba(255,255,255,0.75)}
+  .label{font-size:12px;color:rgba(255,255,255,0.7)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="logo" style="width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800">GMC</div>
+        <div>
+          <div style="font-weight:800">Groupies Meme Coin</div>
+          <div class="small muted">Digitalknuckles.xyz</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div id="addrShort" class="pill small muted">Not connected</div>
+        <button id="connectBtn" class="btn">Connect</button>
+      </div>
+    </div>
+
+    <hr style="border:none;height:1px;background:rgba(255,255,255,0.1);margin:12px 0"/>
+
+    <div class="grid">
+      <div class="label">Your balance</div>
+      <div id="userBalance" class="value">—</div>
+
+      <div style="margin-top:12px">
+        <label class="label">Deposit amount (whole tokens)</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="depositAmount" type="number" min="1" value="1"/>
+          <button id="depositBtn" class="btn">Deposit</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="label">Voting Event</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="voteEventId" type="number" min="1" value="1"/>
+          <button id="voteYesBtn" class="btn">Vote Yes</button>
+          <button id="voteNoBtn" class="btn alt">Vote No</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="label">Pool Balance</div>
+        <div id="poolBalance" class="value">—</div>
+      </div>
+
+      <div id="status" class="small muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Ethers + WalletConnect -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+
+<!-- ✅ Import new modular JS helpers -->
+<script type="module">
+import { initWeb3, getBalance } from './helpers/core.js';
+import { depositTokens } from './helpers/deposit.js';
+import { voteOnEvent } from './helpers/vote.js';
+
+const CONTRACT_ADDRESS = "0xREPLACE_WITH_YOUR_PROXY_ADDRESS";
+const RPC = "https://mainnet.base.org";
+
+let web3Data = {};
+const statusEl = document.getElementById('status');
+
+function setStatus(msg){ statusEl.innerText = msg; }
+
+document.getElementById('connectBtn').addEventListener('click', async()=>{
+  setStatus('Connecting...');
+  web3Data = await initWeb3(RPC, CONTRACT_ADDRESS);
+  if(web3Data?.signer){
+    const addr = await web3Data.signer.getAddress();
+    document.getElementById('addrShort').innerText = addr.slice(0,6)+'...'+addr.slice(-4);
+    setStatus('Connected');
+    await refreshUser();
+  } else setStatus('Connection failed');
+});
+
+async function refreshUser(){
+  const bal = await getBalance(web3Data);
+  document.getElementById('userBalance').innerText = bal;
+}
+
+document.getElementById('depositBtn').addEventListener('click', async()=>{
+  const amt = document.getElementById('depositAmount').value;
+  await depositTokens(web3Data, amt, setStatus);
+  await refreshUser();
+});
+
+document.getElementById('voteYesBtn').addEventListener('click', async()=>{
+  const id = document.getElementById('voteEventId').value;
+  await voteOnEvent(web3Data, id, true, setStatus);
+});
+document.getElementById('voteNoBtn').addEventListener('click', async()=>{
+  const id = document.getElementById('voteEventId').value;
+  await voteOnEvent(web3Data, id, false, setStatus);
+});
+</script>
+</body>
+</html>
