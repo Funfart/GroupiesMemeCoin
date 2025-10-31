@@ -5,203 +5,217 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>GMC Mini App — Market Watch & Voting</title>
 <style>
-:root {
-  --bg: #050914;
-  --accent: #8b5cf6;
-  --accent2: #06b6d4;
-  --success: #10b981;
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-highlight: rgba(255, 255, 255, 0.25);
-  --text-muted: rgba(255, 255, 255, 0.7);
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --blur-strong: 16px;
-  --blur-soft: 8px;
-  --card-padding: 16px;
-  --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-}
+  /* === Liquid Glass 2025 Design System === */
+  :root {
+    --bg: #070b1a;
+    --card: rgba(255, 255, 255, 0.08);
+    --muted: rgba(255, 255, 255, 0.7);
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --success: #10b981;
+    --neon-glow: 0 0 25px rgba(124, 58, 237, 0.6), 0 0 45px rgba(6, 182, 212, 0.4);
+  }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(120% 120% at 50% 10%, #0a1020 0%, #020617 100%);
-  color: #fff;
-  overflow-x: hidden;
-}
+  html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    scroll-behavior: smooth;
+    color: #fff;
+    overflow-x: hidden;
+  }
 
-/* ✨ Animated liquid lighting backdrop */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: conic-gradient(
-    from 120deg,
-    rgba(123, 61, 237, 0.08),
-    rgba(6, 182, 212, 0.08),
-    rgba(123, 61, 237, 0.08)
-  );
-  filter: blur(120px);
-  animation: liquidFlow 20s linear infinite;
-  z-index: 0;
-  pointer-events: none;
-}
-@keyframes liquidFlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+  /* === Static background with parallax illusion === */
+  body {
+    background:
+      linear-gradient(180deg, rgba(7,16,38,0.85) 0%, rgba(11,18,32,0.85) 100%),
+      url('image.png') center center / cover no-repeat fixed;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+  }
 
-.wrap {
-  position: relative;
-  z-index: 1;
-  max-width: 980px;
-  margin: 20px auto;
-  padding: 16px;
-}
+  /* Soft global glass blur overlay for depth */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    z-index: -1;
+  }
 
-/* 🧊 Core Liquid Glass Card */
-.card {
-  position: relative;
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  padding: var(--card-padding);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.03) inset,
-    0 12px 40px rgba(2, 6, 23, 0.7);
-  backdrop-filter: blur(var(--blur-strong)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--blur-strong)) saturate(180%);
-  transition: all 0.4s var(--motion-ease);
-}
-.card:hover {
-  background: rgba(255,255,255,0.12);
-  transform: translateY(-2px);
-}
+  /* Wrapper with soft fade-in motion */
+  .wrap {
+    max-width: 980px;
+    margin: 24px auto;
+    padding: 16px;
+    animation: fadeIn 0.8s ease-out forwards;
+  }
 
-/* 🪩 Subtle reflective shimmer */
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.18) 0%,
-    rgba(255,255,255,0.02) 60%
-  );
-  mix-blend-mode: overlay;
-  pointer-events: none;
-}
+  /* === Liquid Glass Cards === */
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow:
+      0 6px 25px rgba(0, 0, 0, 0.45),
+      inset 0 0 1px rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: transform 0.4s ease, box-shadow 0.4s ease, border 0.3s ease;
+  }
 
-/* Layout */
-.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.6),
+      0 0 40px rgba(124, 58, 237, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
 
-/* Logo glass cube */
-.logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  color: white;
-  box-shadow: 0 0 20px rgba(123, 61, 237, 0.5);
-  transition: all 0.3s var(--motion-ease);
-}
-.logo:hover {
-  transform: rotate(6deg) scale(1.05);
-}
+  /* === Header Elements === */
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
 
-/* Pills */
-.pill {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(var(--blur-soft));
-}
+  .logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: var(--neon-glow);
+    animation: pulseGlow 4s ease-in-out infinite alternate;
+  }
 
-/* Buttons */
-.btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border: none;
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s var(--motion-ease);
-  box-shadow: 0 6px 20px rgba(123,61,237,0.4);
-}
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(123,61,237,0.6);
-}
-.btn.alt {
-  background: rgba(255,255,255,0.05);
-  color: var(--text-muted);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: none;
-}
-.btn.alt:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
+  .pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-/* Inputs */
-input[type=number], input[type=text] {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
-  padding: 8px 10px;
-  border-radius: var(--radius-md);
-  color: #fff;
-  outline: none;
-  transition: border 0.2s var(--motion-ease), background 0.2s var(--motion-ease);
-}
-input:focus {
-  border-color: var(--accent2);
-  background: rgba(255,255,255,0.1);
-}
+  /* === Buttons === */
+  .btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+  }
 
-/* Text styling */
-.label { font-size: 13px; color: var(--text-muted); letter-spacing: 0.3px; text-transform: uppercase; }
-.value { font-size: 18px; font-weight: 700; }
-.small { font-size: 13px; color: var(--text-muted); }
-.muted { color: var(--text-muted); }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--neon-glow);
+  }
 
-/* Grid */
-.grid { display: grid; gap: 16px; }
-.cols-3 { grid-template-columns: 1fr 360px 280px; }
-.cols-2 { grid-template-columns: 1fr 320px; }
+  .btn.alt {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-@media (max-width: 900px) {
-  .cols-3, .cols-2 { grid-template-columns: 1fr; }
-}
+  .btn.alt:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
 
-/* Divider */
-hr {
-  border: none;
-  height: 1px;
-  background: rgba(255,255,255,0.1);
-  margin: 16px 0;
-}
+  /* === Inputs === */
+  input[type=number], input[type=text] {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    color: #fff;
+    width: 100%;
+    transition: all 0.25s ease;
+  }
 
-/* Scrollbar cleanup */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.08);
-  border-radius: 10px;
-}
+  input[type=number]:focus, input[type=text]:focus {
+    outline: none;
+    border-color: var(--accent2);
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+  }
 
-/* Motion fade for content mount */
-@keyframes fadeInGlass {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.card { animation: fadeInGlass 0.5s var(--motion-ease); }
+  /* === Typography === */
+  .label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .value {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+
+  .small {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .muted {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* === Grid Layouts === */
+  .grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .cols-3 { grid-template-columns: 1fr 360px 280px; }
+  .cols-2 { grid-template-columns: 1fr 320px; }
+
+  @media (max-width: 900px) {
+    .cols-3, .cols-2 { grid-template-columns: 1fr; }
+  }
+
+  /* === Scrollbar styling === */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--accent), var(--accent2));
+    border-radius: 6px;
+  }
+
+  /* === Animations === */
+  @keyframes pulseGlow {
+    from { box-shadow: 0 0 10px rgba(124,58,237,0.4), 0 0 20px rgba(6,182,212,0.2); }
+    to { box-shadow: 0 0 25px rgba(124,58,237,0.6), 0 0 45px rgba(6,182,212,0.4); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === Subtle parallax illusion on scroll === */
+  @media (prefers-reduced-motion: no-preference) {
+    .wrap {
+      perspective: 1000px;
+    }
+
+    .card {
+      transform-style: preserve-3d;
+    }
+
+    body {
+      background-attachment: fixed;
+    }
+  }
 </style>
 </head>
 <body>
